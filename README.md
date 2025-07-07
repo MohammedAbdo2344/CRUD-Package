@@ -117,3 +117,7 @@ The command will look for the key that matches the model name (e.g., `Post`).
 -   **Route File**: Use the `--api-route` option to specify a different file for adding the API routes, like `routes/admin.php`.
 -   **Generated Code**: After running the command, you are free to modify any of the generated files to fit your specific needs.
 
+## Author
+
+This CRUD generator was created by [Mohammed Hassan](https://github.com/suiiz).
+
