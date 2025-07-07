@@ -119,5 +119,5 @@ The command will look for the key that matches the model name (e.g., `Post`).
 
 ## Author
 
-This CRUD generator was created by [Mohammed Hassan](https://github.com/suiiz).
+This CRUD generator was created by [Mohammed Hassan](https://github.com/MohammedAbdo2344).
 
