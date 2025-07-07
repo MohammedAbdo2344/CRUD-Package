@@ -24,6 +24,7 @@
     "autoload": {
         "psr-4": {
             "App\\": "app/",
+            "MohammedHassan\\CrudPackage\\": "packages/MohammedHassan/CRUD-Package/src/" ,
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/"
         }
