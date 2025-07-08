@@ -11,13 +11,15 @@ This package provides an Artisan command `make:crud` to quickly scaffold a compl
 -   Adds API resource routes automatically.
 -   Highly customizable through options.
 
-## Dependencies
+## Installation
 
-This command relies on the `wendelladriel/validated-dto` package for DTO validation. Before using the command, make sure to install it:
+You can install the package via composer:
 
 ```bash
-composer require wendelladriel/validated-dto
+composer require mohammedhassan/crud-package
 ```
+
+The package will automatically register its service provider. The necessary dependency `wendelladriel/laravel-validated-dto` will be installed automatically.
 
 ## Usage
 
