@@ -11,15 +11,13 @@ This package provides an Artisan command `make:crud` to quickly scaffold a compl
 -   Adds API resource routes automatically.
 -   Highly customizable through options.
 
-## Installation
+## Dependencies
 
-You can install the package via composer:
+This command relies on the `wendelladriel/validated-dto` package for DTO validation. Before using the command, make sure to install it:
 
 ```bash
-composer require mohammedhassan/crud-package
+composer require wendelladriel/validated-dto
 ```
-
-The package will automatically register its service provider. The necessary dependency `wendelladriel/laravel-validated-dto` will be installed automatically.
 
 ## Usage
 
@@ -122,3 +120,4 @@ The command will look for the key that matches the model name (e.g., `Post`).
 ## Author
 
 This CRUD generator was created by [Mohammed Hassan](https://github.com/MohammedAbdo2344).
+
