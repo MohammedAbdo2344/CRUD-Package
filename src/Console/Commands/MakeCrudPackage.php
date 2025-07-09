@@ -79,7 +79,7 @@ class MakeCrudPackage extends Command
         $routePath = $this->option('api-route');
         $this->addApiResourceRoute($modelName, $routePath, $controllerNamespace);
 
-        
+
         $this->info("✅ CRUD Package for $modelName created successfully!");
     }
 
@@ -94,43 +94,49 @@ class MakeCrudPackage extends Command
         }
 
         $methodContent = <<<PHP
-
-    // Custom CRUD methods using DTOs
-    public static function store{$modelName}(\$data)
-    {
-        return self::create(\$data->toCreate());
-    }
-
-    public static function update{$modelName}(\$dto)
-    {
-        return self::findOrFail(\$dto->id)->update(\$dto->toUpdate());
-    }
-
-    public static function delete{$modelName}(\$id)
-    {
-        return self::findOrFail(\$id)->delete();
-    }
-
-    public static function list{$modelName}s(\$dto)
-    {
-        // Add filtering logic if needed
-        return self::query()->paginate();
-    }
-
-PHP;
+    
+        // Custom CRUD methods using DTOs
+        public static function store{$modelName}(\$data)
+        {
+            return self::create(\$data);
+        }
+    
+        public static function update{$modelName}(\$dto)
+        {
+            return self::findOrFail(\$dto->id)->update(\$dto);
+        }
+    
+        public static function delete{$modelName}(\$id)
+        {
+            return self::findOrFail(\$id)->delete();
+        }
+    
+        public static function list{$modelName}s(\$dto)
+        {
+            // Add filtering logic if needed
+            return self::query()->paginate();
+        }
+    
+        public static function show{$modelName}(\$id)
+        {
+            return self::find(\$id);
+        }
+    
+    PHP;
 
         // Append above methods before the last closing brace `}`
         $modelContent = file_get_contents($modelPath);
 
         if (str_contains($modelContent, 'function store' . $modelName)) {
-            $this->info("Methods already exist in model, skipping append.");
+            $this->info("ℹ️  Methods already exist in model, skipping append.");
             return;
         }
 
         $modelContent = preg_replace('/}\s*$/', rtrim($methodContent) . "\n}", $modelContent);
         file_put_contents($modelPath, $modelContent);
-        $this->info("✔️  Methods added to $modelName model.");
+        $this->info("✔️  Methods added to {$modelName} model.");
     }
+
 
 
     protected function createService($modelName)
@@ -160,25 +166,34 @@ class {$modelName}Service
         return {$modelName}::list{$modelName}s(\$dto);
     }
 
+    public function show(int \$id)
+    {
+        return {$modelName}::show{$modelName}(\$id);
+    }
+
+
     public function store(Store{$modelName}DTO \$dto)
     {
-        return DB::transaction(fn () =>
-            {$modelName}::store{$modelName}(\$dto->toArray())
-        );
+        DB::beginTransaction();
+        \${$modelName} = {$modelName}::store{$modelName}(\$dto->toCreate());
+        DB::commit();
+        return \${$modelName};
     }
 
     public function update(Update{$modelName}DTO \$dto)
     {
-        return DB::transaction(fn () =>
-            {$modelName}::update{$modelName}(\$dto)
-        );
+        DB::beginTransaction();
+        \${$modelName} = {$modelName}::update{$modelName}(\$dto->toUpdate());
+        DB::commit();
+        return \${$modelName};
     }
 
     public function delete(Delete{$modelName}DTO \$dto)
     {
-        return DB::transaction(fn () =>
-            {$modelName}::delete{$modelName}(\$dto->id)
-        );
+        DB::beginTransaction();
+        {$modelName}::delete{$modelName}(\$dto->id);
+        DB::commit();
+        return true;
     }
 }
 PHP;
@@ -204,6 +219,7 @@ PHP;
 namespace {$controllerNamespace};
 
 use {$dtoNamespace}\\List{$modelName}DTO;
+use {$dtoNamespace}\\Show{$modelName}DTO;
 use {$dtoNamespace}\\Store{$modelName}DTO;
 use {$dtoNamespace}\\Update{$modelName}DTO;
 use {$dtoNamespace}\\Delete{$modelName}DTO;
@@ -228,6 +244,15 @@ class {$modelName}Controller extends Controller
         return ResponsesHelper::returnResource(
             {$resourceName}::collection(\$items),
             trans('defaults.response.success.list_successfully')
+        );
+    }
+
+    public function show(Request \$request, \$id)
+    {
+        \$item = \$this->{$variableName}->show(new Show{$modelName}DTO(\$id));
+        return ResponsesHelper::returnResource(
+            {$resourceName}::make(\$item),
+            trans('defaults.response.success.show_successfully')
         );
     }
 
@@ -272,7 +297,7 @@ PHP;
 
     protected function createDTOs(string $modelName, array $schema = [])
     {
-        $types = ['Store', 'Update', 'Delete', 'List'];
+        $types = ['Store', 'Update', 'Delete', 'List', 'Show'];
         $serviceBasePath = app_path("DTOs/Service/{$modelName}");
         $modelBasePath = app_path("DTOs/Model/{$modelName}");
 
@@ -366,6 +391,35 @@ PHP;
 
         file_put_contents("{$path}/{$dtoName}.php", $content);
     }
+
+    protected function generateShowServiceDTO($path, $dtoName, $namespace, array $schema = [])
+    {
+        $content = <<<PHP
+<?php
+
+namespace {$namespace};
+
+use Illuminate\Validation\Validator;
+use WendellAdriel\ValidatedDTO\ValidatedDTO;
+use WendellAdriel\ValidatedDTO\Concerns\EmptyDefaults;
+use WendellAdriel\ValidatedDTO\Concerns\EmptyCasts;
+
+class {$dtoName} extends ValidatedDTO
+{
+    use EmptyDefaults, EmptyCasts;
+
+    protected function rules(): array
+    {
+        return [
+            'id' => 'required|int',
+        ];
+    }
+}
+PHP;
+
+        file_put_contents("{$path}/{$dtoName}.php", $content);
+    }
+
 
     protected function generateStoreServiceDTO($path, $dtoName, $namespace, array $schema = [])
     {
